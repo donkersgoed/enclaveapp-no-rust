@@ -4,6 +4,7 @@ RUN yum install python3 gcc net-tools -y
 
 WORKDIR /app
 
+COPY libnsm.so ./
 COPY requirements.txt ./
 
 RUN pip3 install -r requirements.txt

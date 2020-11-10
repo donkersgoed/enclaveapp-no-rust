@@ -26,6 +26,7 @@ def test_ioctl():
     """."""
     try:
         nsm_message = NsmMessage()
+        print(f'Size of NsmMessage: {ctypes.sizeof(NsmMessage)}')
         operation = IOC(IOC_WRITE|IOC_READ, 0x0A, 0x00, ctypes.sizeof(NsmMessage))
 
         devicehandle = open('/dev/nsm', 'w')
@@ -45,6 +46,7 @@ def main():
 
     # Initialize a KMS class
     nitro_kms = NitroKms()
+    print(f'Random: {nitro_kms.nsm_rand_func(12)}')
     print('Listening...')
 
     while True:
