@@ -3,6 +3,8 @@
 import base64
 import json
 import socket
+import traceback
+import sys
 
 import fcntl
 import ctypes
@@ -16,34 +18,30 @@ ENCLAVE_PORT = 5000
 
 class NsmMessage(ctypes.Structure):
     _fields_ = [
-        ('request', ctypes.create_string_buffer(0)),
-        ('response', ctypes.create_string_buffer(0x3000))
+        ('request', 0x00 * ctypes.c_uint8),
+        ('response', 0x3000 * ctypes.c_uint8)
     ]
 
 def test_ioctl():
     """."""
     try:
-        devicehandle = open('/dev/nsm', 'w')
-
         nsm_message = NsmMessage()
-        # nsm_message.request = 'test'
-        # nsm_message.response = 'test'
+        operation = IOC(IOC_WRITE|IOC_READ, 0x0A, 0x00, ctypes.sizeof(NsmMessage))
 
-        operation = IOC(IOC_WRITE|IOC_READ, 0x0A, 0x00, NsmMessage)
-
+        devicehandle = open('/dev/nsm', 'w')
         fcntl.ioctl(devicehandle, operation, nsm_message)
         print(nsm_message.response.value)
     except Exception as exc:
-        print(f'ioctl failed: {type(exc)} - {str(exc)}')
+        print(f'test_ioctl() failed: {type(exc)} - {str(exc)}')
+        traceback.print_exc(file=sys.stdout)
 
 def main():
     """Run the nitro enclave application."""
+    test_ioctl()
     # Bind and listen on vsock.
     vsock = socket.socket(socket.AF_VSOCK, socket.SOCK_STREAM) # pylint:disable=no-member
     vsock.bind((socket.VMADDR_CID_ANY, ENCLAVE_PORT)) # pylint:disable=no-member
     vsock.listen()
-
-    test_ioctl()
 
     # Initialize a KMS class
     nitro_kms = NitroKms()
