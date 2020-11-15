@@ -14,7 +14,7 @@ from Crypto.Cipher import AES, PKCS1_OAEP
 from Crypto.PublicKey import RSA
 from Crypto.Util.Padding import unpad
 
-import libnsm
+import aws_nsm_interface
 
 class NitroKms():
     """KMS interaction class."""
@@ -27,10 +27,10 @@ class NitroKms():
     def __init__(self):
         """Construct a new NitroKms instance."""
         # Initialize the Rust NSM Library
-        self._nsm_fd = libnsm.nsm_lib_init() # pylint:disable=c-extension-no-member
+        self._nsm_fd = aws_nsm_interface.open_nsm_device()
         # Create a new random function `nsm_rand_func`, which
         # utilizes the NSM module.
-        self.nsm_rand_func = lambda num_bytes : libnsm.nsm_get_random( # pylint:disable=c-extension-no-member
+        self.nsm_rand_func = lambda num_bytes : aws_nsm_interface.get_random(
             self._nsm_fd, num_bytes
         )
 
@@ -103,7 +103,7 @@ class NitroKms():
 
     def _get_attestation_doc_b64(self):
         """Get the attestation document from /dev/nsm."""
-        libnsm_att_doc_cose_signed = libnsm.nsm_get_attestation_doc( # pylint:disable=c-extension-no-member
+        libnsm_att_doc_cose_signed = aws_nsm_interface.get_attestation_doc(
             self._nsm_fd,
             self._public_key,
             len(self._public_key)
